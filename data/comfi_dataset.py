@@ -12,7 +12,7 @@ from torchvision import transforms, utils
 
 
 class MRIDataset(Dataset):
-    def __init__(self, dataroot, valid_mask, phase='train', image_size=128, in_channel=1, val_volume_idx=60, val_slice_idx=60,
+    def __init__(self, dataroot, valid_mask, phase='train', image_size=128, in_channel=1, val_volume_idx=50, val_slice_idx=40,
                  padding=1, lr_flip=0.5, stage2_file=None):
         self.padding = padding // 2
         self.lr_flip = lr_flip
@@ -30,18 +30,12 @@ class MRIDataset(Dataset):
         assert type(valid_mask) is (list or tuple) and len(valid_mask) == 2
 
         # mask data
-        #raw_data = np.expand_dims(raw_data,-1)
-        raw_data = np.repeat(raw_data[:, :, :, np.newaxis], 160, axis=3)
+        raw_data = np.expand_dims(raw_data,-1)
         raw_data = raw_data[:,:,:,valid_mask[0]:valid_mask[1]] 
-        
-        # Adding rician noise to data
-        
-        
         self.data_size_before_padding = raw_data.shape
 
-        
-        self.raw_data = np.pad(raw_data, ((0,0), (0,0), (in_channel//2, in_channel//2), (self.padding, self.padding)), mode='constant')
-        #self.raw_data = np.tile(raw_data, (0,0,0,150))
+        self.raw_data = np.pad(raw_data, ((0,0), (0,0), (in_channel//2, in_channel//2), (self.padding, self.padding)), mode='wrap')
+
         # running for Stage3?
         if stage2_file is not None:
             print('Parsing Stage2 matched states from the stage2 file...')
@@ -56,16 +50,12 @@ class MRIDataset(Dataset):
                 #transforms.Resize(image_size),
                 transforms.RandomVerticalFlip(lr_flip),
                 transforms.RandomHorizontalFlip(lr_flip),
-                
-                transforms.Lambda(self.add_rician_noise),
                 transforms.Lambda(self.lam_transform)
-
             ])
         else:
             self.transforms = transforms.Compose([
                 transforms.ToTensor(),
                 #transforms.Resize(image_size),
-                transforms.Lambda(self.add_rician_noise),
                 transforms.Lambda(self.lam_transform)
             ])
 
@@ -76,7 +66,6 @@ class MRIDataset(Dataset):
             self.val_volume_idx = [val_volume_idx]
         elif type(val_volume_idx) is list:
             self.val_volume_idx = val_volume_idx
-
         else:
             self.val_volume_idx = [int(val_volume_idx)]
 
@@ -110,7 +99,7 @@ class MRIDataset(Dataset):
             return len(self.val_volume_idx) * len(self.val_slice_idx)
         
     def lam_transform(self, t):
-        return torch.tensor((t * 2) - 1, dtype=torch.float32)
+        return (t * 2) - 1
 
     def __getitem__(self, index):
         if self.phase == 'train' or self.phase == 'test':
@@ -124,15 +113,13 @@ class MRIDataset(Dataset):
             volume_idx = self.val_volume_idx[index]
 
         raw_input = self.raw_data
-
-
-
+       
         if self.padding > 0:
             raw_input = np.concatenate((
                                     raw_input[:,:,slice_idx:slice_idx+2*(self.in_channel//2)+1,volume_idx:volume_idx+self.padding],
                                     raw_input[:,:,slice_idx:slice_idx+2*(self.in_channel//2)+1,volume_idx+self.padding+1:volume_idx+2*self.padding+1],
                                     raw_input[:,:,slice_idx:slice_idx+2*(self.in_channel//2)+1,[volume_idx+self.padding]]), axis=-1)
-             
+
         elif self.padding == 0:
             raw_input = np.concatenate((
                                     raw_input[:,:,slice_idx:slice_idx+2*(self.in_channel//2)+1,[volume_idx+self.padding-1]],
@@ -152,64 +139,57 @@ class MRIDataset(Dataset):
 
         return ret
 
-    def clip_img(self, image):
-        image = image.double()
-        image = torch.where(image > 1., 1., image)
-        return torch.where(image < 0., 0., image)
-
-    def add_rician_noise(self, image, intensity=0.3):
-      n1 = torch.normal(0, 1, image.shape)
-      n1 = n1 / torch.max(n1)
-
-      n2 = torch.normal(0, 1, image.shape)
-      n2 = n2 / torch.max(n2)
-      return self.clip_img(torch.abs(image + intensity*n1 + intensity*n2*1j))
 
 if __name__ == "__main__":
 
+    # s3sh
+    # valid_mask = np.zeros(193,)
+    # valid_mask[1:1+64] += 1
+    # valid_mask = valid_mask.astype(np.bool8)
+    # dataset = MRIDataset('/media/administrator/1305D8BDB8D46DEE/stanford/sr3/scripts/data/HARDI193.nii.gz', valid_mask,
+    #                      phase='train', val_volume_idx=40, padding=3)#, initial_stage_file='/media/administrator/1305D8BDB8D46DEE/stanford/MRI/experiments/v25_noisemodel/stages.txt')
     
+    # # hardi
+    # valid_mask = np.zeros(160,)
+    # valid_mask[10:] += 1
+    # valid_mask = valid_mask.astype(np.bool8)
+    # dataset = MRIDataset('/media/administrator/1305D8BDB8D46DEE/stanford/sr3/scripts/data/HARDI150.nii.gz', valid_mask,
+    #                      phase='train', val_volume_idx=40, padding=3)#, initial_stage_file='/media/administrator/1305D8BDB8D46DEE/stanford/MRI/experiments/v25_noisemodel/stages.txt')
+
+    # gslider
+    # valid_mask = np.zeros(60,)
+    # valid_mask[10:] += 1
+    # valid_mask = valid_mask.astype(np.bool8)
+    # dataset = MRIDataset('/media/administrator/1305D8BDB8D46DEE/stanford/data/gSlider_first.nii', valid_mask,
+    #                      phase='train', val_volume_idx=40, padding=3)#, initial_stage_file='/media/administrator/1305D8BDB8D46DEE/stanford/MRI/experiments/v25_noisemodel/stages.txt')
+
     # qiyuan's data
-    valid_mask = [10,160]
-    #valid_mask = valid_mask.astype(np.bool8)
-    dataset = MRIDataset('D:/Comfi Data/inphase-004/inphase/anatid_^_0086_UBrain_^_601_^_InPhase__MRAC_1_-_Static_Brain_Emission_ph.nii', valid_mask,
-                         phase='train', val_volume_idx=60, padding=3)#, initial_stage_file='/media/administrator/1305D8BDB8D46DEE/stanford/MRI/experiments/v25_noisemodel/stages.txt')
-
-    data = dataset[9060]
-    img = data['X']
-    condition = data['condition']
-    img = img.numpy()
-    condition = condition.numpy()
-    vis = np.hstack((img[0], condition[0], condition[1]))
-    plt.imshow(vis, cmap='gray')
-    plt.show()
-    print('Break')#break
+    valid_mask = np.zeros(108,)
+    valid_mask[18:] += 1
+    valid_mask = valid_mask.astype(np.bool8)
+    dataset = MRIDataset('/media/sda5/MRI/qiyuan/forAkshay/mwu100307/diff/mwu100307_diff.nii.gz', valid_mask,
+                         phase='train', val_volume_idx=40, padding=3)#, initial_stage_file='/media/administrator/1305D8BDB8D46DEE/stanford/MRI/experiments/v25_noisemodel/stages.txt')
 
 
+    trainloader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False, num_workers=0)
+    for i, data in enumerate(trainloader):
+        if i < 95 != 0:
+            continue
+        if i > 108:
+            break
+        img = data['X']
+        condition = data['condition']
+        img = img.numpy()
+        condition = condition.numpy()
 
+        vis = np.hstack((img[0].transpose(1,2,0), condition[0,[0]].transpose(1,2,0), condition[0,[1]].transpose(1,2,0)))
+        # plt.imshow(img[0].transpose(1,2,0), cmap='gray')
+        # plt.show()
+        # plt.imshow(condition[0,[0]].transpose(1,2,0), cmap='gray')
+        # plt.show()
+        # plt.imshow(condition[0,[1]].transpose(1,2,0), cmap='gray')
+        # plt.show()
 
-
-
-
-    # trainloader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False, num_workers=0)
-    # for i, data in enumerate(trainloader):
-    #     if i < 9000 != 0:
-    #         continue
-    #     if i > 12000:
-    #         break
-    #     img = data['X']
-    #     condition = data['condition']
-    #     img = img.numpy()
-    #     condition = condition.numpy()
-
-    #     vis = np.hstack((img[0].transpose(1,2,0), condition[0,[0]].transpose(1,2,0), condition[0,[1]].transpose(1,2,0)))
-    #     # plt.imshow(img[0].transpose(1,2,0), cmap='gray')
-    #     # plt.show()
-    #     # plt.imshow(condition[0,[0]].transpose(1,2,0), cmap='gray')
-    #     # plt.show()
-    #     # plt.imshow(condition[0,[1]].transpose(1,2,0), cmap='gray')
-    #     # plt.show()
-
-    #     plt.imshow(vis, cmap='gray')
-    #     plt.show()
-    #     #break
-    #     print('Break')
+        plt.imshow(vis, cmap='gray')
+        plt.show()
+        #break

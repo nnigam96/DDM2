@@ -10,10 +10,9 @@ import numpy as np
 from dipy.io.image import save_nifti, load_nifti
 from tqdm import tqdm
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--config', type=str, default='config/sr_sr3_64_512.json',
+    parser.add_argument('-c', '--config', type=str, default='config/hardi_150.json',
                         help='JSON file for configuration')
     parser.add_argument('-p', '--phase', type=str, choices=['val'], help='val(generation)', default='val')
     parser.add_argument('-gpu', '--gpu_ids', type=str, default=None)
@@ -81,7 +80,7 @@ if __name__ == "__main__":
 
         if not args.save:
             denoised_img = Metrics.tensor2img(visuals['denoised'])  # uint8
-            input_img = Metrics.tensor2img(visuals['Y'])  # uint8
+            input_img = Metrics.tensor2img(visuals['X'])  # uint8
 
             # save img
             Metrics.save_img(

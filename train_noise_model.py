@@ -13,11 +13,11 @@ print(torch.__version__, torch.version.cuda)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--config', type=str, default='config/sr_sr3_16_128.json',
+    parser.add_argument('-c', '--config', type=str, default='config/hardi_150.json',
                         help='JSON file for configuration')
     parser.add_argument('-p', '--phase', type=str, choices=['train', 'val'],
                         help='Run either train(training) or val(generation)', default='train')
-    parser.add_argument('-gpu', '--gpu_ids', type=str, default=None)
+    parser.add_argument('-gpu', '--gpu_ids', type=str, default='0')
     parser.add_argument('-debug', '-d', action='store_true')
 
     # parse configs

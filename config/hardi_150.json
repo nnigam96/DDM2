@@ -1,47 +1,47 @@
  {
     "name": "hardi150",
-    "phase": "train", // train or val
+    "phase": "train", 
     "gpu_ids": [
         0
     ],
-    "path": { //set the path
+    "path": { 
         "log": "logs",
         "tb_logger": "tb_logger",
         "results": "results",
         "checkpoint": "checkpoint",
-        "resume_state": null //"/home/users/tiangex/MRI_denoise/experiments/hardi150_220515_194722/checkpoint/latest"
+        "resume_state": "D:/Git Repos/DDM2/experiments/hardi150_230331_011650/checkpoint/latest"
     },
     "datasets": {
         "train": {
             "name": "hardi",
-            "dataroot": "/home/users/tiangex/data",
+            "dataroot": "D:/Comfi Data/inphase-004/inphase/anatid_^_0086_UBrain_^_601_^_InPhase__MRAC_1_-_Static_Brain_Emission_ph.nii",
             "valid_mask": [10,160],
             "phase": "train",
             "padding": 3,
             "val_volume_idx": 40,
-            "val_slice_idx": 40,
+            "val_slice_idx": 60,
             "train_volume_idx":2,
-            "batch_size": 32,
+            "batch_size": 1,
             "in_channel": 1,
             "num_workers": 0,
             "use_shuffle": true
         },
         "val": {
             "name": "hardi",
-            "dataroot": "/home/users/tiangex/data",
+            "dataroot": "D:/Comfi Data/inphase-004/inphase/anatid_^_0086_UBrain_^_601_^_InPhase__MRAC_1_-_Static_Brain_Emission_ph.nii",
             "valid_mask": [10,160],
             "phase": "val",
             "padding": 3,
             "val_volume_idx": 40,
-            "val_slice_idx": 40,
-            "train_volume_idx":2, // 0 1 2
+            "val_slice_idx": 60,
+            "train_volume_idx":2, 
             "batch_size": 1,
             "in_channel": 1,
             "num_workers": 0
         }
     },
     "model": {
-        "which_model_G": "mri", // use the ddpm or sr3 network structure
+        "which_model_G": "mri", 
         "finetune_norm": false,
         "drop_rate": 0.0,
         "unet": {
@@ -63,7 +63,7 @@
             "dropout": 0.0,
             "version": "v1"
         },
-        "beta_schedule": { // use munual beta_schedule for acceleration
+        "beta_schedule": { 
             "train": {
                 "schedule": "rev_warmup70",
                 "n_timestep": 1000,
@@ -79,12 +79,12 @@
         },
         "diffusion": {
             "image_size": 128,
-            "channels": 3, //sample channel
-            "conditional": true // unconditional generation or unconditional generation(super_resolution)
+            "channels": 3, 
+            "conditional": true 
         }
     },
     "train": {
-        "n_iter": 100000, //150000,
+        "n_iter": 130000,
         "val_freq": 1e3,
         "save_checkpoint_freq": 1e4,
         "print_freq": 1e2,
@@ -92,15 +92,15 @@
             "type": "adam",
             "lr": 1e-4
         },
-        "ema_scheduler": { // not used now
+        "ema_scheduler": { 
             "step_start_ema": 5000,
             "update_ema_every": 1,
             "ema_decay": 0.9999
         }
     },
-    // for Phase1
+
     "noise_model": {
-        "resume_state": null, //"/home/users/tiangex/MRI_denoise/experiments/hardi150_noisemodel/checkpoint/latest",
+        "resume_state": "D:/Git Repos/DDM2/experiments/hardi150_noisemodel_230330_215230/checkpoint/latest", 
         "drop_rate": 0.0,
         "unet": {
             "in_channel": 2,
@@ -121,7 +121,7 @@
             "dropout": 0.0,
             "version": "v1"
         },
-        "beta_schedule": { // use munual beta_schedule for accelerationß
+        "beta_schedule": { 
             "linear_start": 5e-5,
             "linear_end": 1e-2
         },
@@ -134,5 +134,5 @@
             "lr": 1e-4
         }
     },
-    "stage2_file": null
+    "stage2_file": "D:/Git Repos/DDM2/stage_matching_txt/stages_comfi.txt"
 }
