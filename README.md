@@ -12,7 +12,7 @@ Please clone our environment using the following command:
 
 ```
 conda env create -f environment.yml  
-conda activate DDM2
+conda activate ddm2
 ```
 
 ## Usage
@@ -30,28 +30,28 @@ data, affine = load_nifti(hardi_fname)
 
 Different experiments are controlled by configuration files, which are in ```config/```. 
 
-We have provided default training configurations for reproducing our experiments. Users are required to **change the path vairables** to their own directory/data before running any experiments.
+We have provided default training configurations for reproducing our experiments. Users are required to **change the path vairables** to their own directory/data before running any experiments. *More detailed guidances are provided as inline comments in the config files.*
 
 ### Train
 
-The training of DDM<sup>2</sup> contains three sequential stages. For each stage, a corresponding config file need to be passed as a coommand line flag.
+The training of DDM<sup>2</sup> contains three sequential stages. For each stage, a corresponding config file (or an update of the original config file) need to be passed as a coommand line arg.
 
 1. To train our Stage I:  
-```python3 train_noise_model.py -p train -c config/hardi.json```  
+```python3 train_noise_model.py -p train -c config/hardi_150.json```  
 or alternatively, modify ```run_stage1.sh``` and run:  
 ```./run_stage1.sh```  
 
 2. After Stage I training completed, the path to the checkpoint of the noise model need to be specific at 'resume_state' of the 'noise_model' section in corresponding config file. Additionally, a file path (.txt) needs to be specified at 'initial_stage_file' in the 'noise_model' section. This file will be recorded with the matched states in Stage II.  
 
 3. To process our Stage II:  
-```python3 match_state.py -p train -c config/hardi.json```  
+```python3 match_state.py -p train -c config/hardi_150.json```  
 or alternatively, modify ```run_stage2.sh``` and run:  
 ```./run_stage2.sh```  
 
 4. After Stage II finished, the state file (recorded in the previous step) needs to be specified at 'initial_stage_file' for both 'train' and 'val' in the 'datasets' section.  
 
 5. To train our Stage III:  
-```python3 train_diff_model.py -p train -c config/hardi.json```  
+```python3 train_diff_model.py -p train -c config/hardi_150.json```  
 or alternatively, modify ```run_stage3.sh``` and run:  
 ```./run_stage3.sh```  
 
@@ -76,6 +76,6 @@ If you find this repo useful in your work or research, please cite:
 @inproceedings{xiangddm,
   title={DDM $\^{} 2$: Self-Supervised Diffusion MRI Denoising with Generative Diffusion Models},
   author={Xiang, Tiange and Yurt, Mahmut and Syed, Ali B and Setsompop, Kawin and Chaudhari, Akshay},
-  booktitle={International Conference on Learning Representations}
+  booktitle={The Eleventh International Conference on Learning Representations}
 }
 ```
