@@ -1,34 +1,34 @@
  {
     "name": "hardi150",
     "phase": "train", 
-    "gpu_ids": [
+    "gpu_ids": [ 
         0
     ],
     "path": { 
-        "log": "logs",
-        "tb_logger": "tb_logger",
-        "results": "results",
-        "checkpoint": "checkpoint",
-        "resume_state": "D:/Git Repos/DDM2/experiments/hardi150_230331_011650/checkpoint/latest"
+        "log": "/staging/nnigam/ddm2/logs",
+        "tb_logger": "/staging/nnigam/ddm2/tb_logger",
+        "results": "/staging/nnigam/ddm2/results",
+        "checkpoint": "/staging/nnigam/ddm2/checkpoint",
+        "resume_state": null
     },
     "datasets": {
         "train": {
             "name": "hardi",
-            "dataroot": "D:/Comfi Data/inphase-004/inphase/anatid_^_0086_UBrain_^_601_^_InPhase__MRAC_1_-_Static_Brain_Emission_ph.nii",
+            "dataroot": "/staging/nnigam/inphase/anatid_^_0086_UBrain_^_601_^_InPhase__MRAC_1_-_Static_Brain_Emission_ph.nii",
             "valid_mask": [10,160],
             "phase": "train",
             "padding": 3,
             "val_volume_idx": 40,
             "val_slice_idx": 60,
             "train_volume_idx":2,
-            "batch_size": 1,
+            "batch_size": 32,
             "in_channel": 1,
-            "num_workers": 0,
+            "num_workers": 2,
             "use_shuffle": true
         },
         "val": {
             "name": "hardi",
-            "dataroot": "D:/Comfi Data/inphase-004/inphase/anatid_^_0086_UBrain_^_601_^_InPhase__MRAC_1_-_Static_Brain_Emission_ph.nii",
+            "dataroot": "/staging/nnigam/inphase/anatid_^_0086_UBrain_^_601_^_InPhase__MRAC_1_-_Static_Brain_Emission_ph.nii",
             "valid_mask": [10,160],
             "phase": "val",
             "padding": 3,
@@ -37,7 +37,7 @@
             "train_volume_idx":2, 
             "batch_size": 1,
             "in_channel": 1,
-            "num_workers": 0
+            "num_workers": 2
         }
     },
     "model": {
@@ -84,7 +84,7 @@
         }
     },
     "train": {
-        "n_iter": 130000,
+        "n_iter": 100000,
         "val_freq": 1e3,
         "save_checkpoint_freq": 1e4,
         "print_freq": 1e2,
@@ -100,7 +100,7 @@
     },
 
     "noise_model": {
-        "resume_state": "D:/Git Repos/DDM2/experiments/hardi150_noisemodel_230330_215230/checkpoint/latest", 
+        "resume_state": "/staging/nnigam/ddm2/checkpoint/latest", 
         "drop_rate": 0.0,
         "unet": {
             "in_channel": 2,
@@ -125,7 +125,7 @@
             "linear_start": 5e-5,
             "linear_end": 1e-2
         },
-        "n_iter": 10000,
+        "n_iter": 12000,
         "val_freq": 2e3,
         "save_checkpoint_freq": 1e4,
         "print_freq": 1e3,
@@ -134,5 +134,5 @@
             "lr": 1e-4
         }
     },
-    "stage2_file": "D:/Git Repos/DDM2/stage_matching_txt/stages_comfi.txt"
+    "stage2_file": "/staging/nnigam/ddm2/stage_matching/state_match.txt"
 }

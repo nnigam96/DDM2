@@ -25,7 +25,7 @@ def create_dataset(dataset_opt, phase, stage2_file=None):
     '''create dataset'''
 
     # unified data loader
-    from data.mri_dataset import MRIDataset
+    from data.comfi_dataset import MRIDataset
 
     dataset = MRIDataset(dataroot=dataset_opt['dataroot'],
                 valid_mask=dataset_opt['valid_mask'],

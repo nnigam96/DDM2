@@ -137,8 +137,8 @@ for _,  data in tqdm(enumerate(val_loader)):
         print(min_t, np.max(result_np), np.min(result_np))
         break
         
-    volume_idx = (idx - 1) // val_set.raw_data.shape[-2]
-    slice_idx = (idx - 1) % val_set.raw_data.shape[-2]
+    volume_idx = (idx - 1) // val_set.biased_data.shape[-2]
+    slice_idx = (idx - 1) % val_set.biased_data.shape[-2]
     #min_t = 500
     stage_file.write('%d_%d_%d\n' % (volume_idx, slice_idx, min_t))
 

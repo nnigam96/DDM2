@@ -30,6 +30,10 @@ if __name__ == "__main__":
     torch.backends.cudnn.enabled = True
     torch.backends.cudnn.benchmark = True
 
+
+    print('Cuda availability:',torch.cuda.is_available())
+    print('Cuda Version:',torch.version.cuda)
+    
     Logger.setup_logger(None, opt['path']['log'],
                         'train', level=logging.INFO, screen=True)
     Logger.setup_logger('val', opt['path']['log'], 'val', level=logging.INFO)
@@ -102,7 +106,7 @@ if __name__ == "__main__":
                         Metrics.save_img(
                             input_img[:,:], '{}/{}_{}_input.png'.format(result_path, current_step, idx))
 
-                if current_step % opt['noise_model']['save_checkpoint_freq'] == 0:
+                if current_step % opt['noise_model']['save_checkpoint_freq'] >= 0:
                     logger.info('Saving models and training states.')
                     trainer.save_network(current_epoch, current_step, save_last_only=True)
         # save model
