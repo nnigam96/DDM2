@@ -107,7 +107,8 @@ class GaussianDiffusion(nn.Module):
             self.ttt_opt = torch.optim.Adam(optim_params, lr=1e-4)
 
         if schedule_opt is not None:
-            self.set_new_noise_schedule(schedule_opt, device=torch.device('cuda:0'))
+            #self.set_new_noise_schedule(schedule_opt, device=torch.device('cuda:0'))
+            self.set_new_noise_schedule(schedule_opt, device=torch.device('cpu'))
 
 
     def set_loss(self, device):

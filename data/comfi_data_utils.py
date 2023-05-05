@@ -56,6 +56,12 @@ def add_rician_noise(image, intensity=1):
   n2 = n2 / torch.max(n2)
   return clip_img(torch.abs(image + intensity*n1 + intensity*n2*1j))
 
+def add_gaussian_noise(image, mean=0.0, std=1.0, intensity=1.0):
+  noise = torch.normal(mean=mean, std=std, size=image.shape)
+  noise = noise
+  noisy_image = image + intensity * noise
+  return clip_img(noisy_image)
+
 # Custom Functions for N4 Correction
 def run_n4(img, mask):
   #img = img.copy()
@@ -143,35 +149,37 @@ def normalize(image):
 def combinedTransforms(img, B):
   N_GAIN = 0.1 # Percent intensity of the magnitude of the absolute value of the noise  0.07
   #B_LOW_END = 0.055 # Percent intensity of the darkest part of the B field  0.06
+  
   img = torch.tensor(img)
-  mask_np = torch.where(torch.tensor(img) > 0, 1, 0)#.astype('float32')
+  mask_np = torch.where(torch.tensor(img) > 0, 1, 0) #.astype('float32')
   norm_Img = normalize(img*B*mask_np)
+  #norm_Img = normalize(img*mask_np)
   #img = img*B*mask_np
-  img_x = add_rician_noise(norm_Img, N_GAIN)
+  img_x = add_rician_noise(norm_Img, intensity=N_GAIN)
   img_n4 = img_x
   img_n4 = run_n4(img_x.detach().numpy(), mask_np)
   return torch.tensor(img_n4)
 
+
+
 # Combined Image to be used for Training
-def finalTransforms(img_3d):
+def finalTransforms(img_3d, B):
     #print(img_3d.shape)
-    z = img_3d.shape[3]
-    temp = np.copy(img_3d)
+    z = img_3d.shape[0]
     #print(shape)
     #N_GAIN = 0.06 # Percent intensity of the magnitude of the absolute value of the noise  0.07
-    B_LOW_END = 0.05 # Percent intensity of the darkest part of the B field  0.06
-    B = genCompositeField(SIZE, B_LOW_END)
     #torch.random(0,5)
-    plt.imshow(B, cmap='gray')
-    plt.show()
-    plt.savefig("bias_pre.png")
+    # plt.imshow(B, cmap='gray')
+    # plt.show()
+    # plt.savefig("bias_pre.png")
     B = torch.rot90(torch.rot90(torch.rot90(B)))
-    plt.imshow(B, cmap='gray')
-    plt.show()
-    plt.savefig("bias_post.png")
+    # plt.imshow(B, cmap='gray')
+    # plt.show()
+    # plt.savefig("bias_post.png")
     #plt.imshow(B, cmap='gray')
     for i in range(0,z):
-        img_3d[:,:,:,i]=combinedTransforms(img_3d[:,:,:,i], B)
+        img_3d[i,:,:]=combinedTransforms(img_3d[i,:,:], B)
+    #img_3D = combinedTransforms(img_3d, B)
     return img_3d
 
 

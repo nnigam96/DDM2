@@ -17,7 +17,7 @@ if __name__ == "__main__":
                         help='JSON file for configuration')
     parser.add_argument('-p', '--phase', type=str, choices=['train', 'val'],
                         help='Run either train(training) or val(generation)', default='train')
-    parser.add_argument('-gpu', '--gpu_ids', type=str, default=None)
+    parser.add_argument('-gpu', '--gpu_ids', type=str, default='0')
     parser.add_argument('-debug', '-d', action='store_true')
 
     # parse configs
@@ -25,7 +25,7 @@ if __name__ == "__main__":
     opt = Logger.parse(args)
     # Convert to NoneDict, which return None for missing key.
     opt = Logger.dict_to_nonedict(opt)
-
+    #opt['gpu_ids'] = None
     # logging
     torch.backends.cudnn.enabled = True
     torch.backends.cudnn.benchmark = True
@@ -37,6 +37,8 @@ if __name__ == "__main__":
     logger.info(Logger.dict2str(opt))
 
     stage2_file = opt['stage2_file']
+
+    #opt['gpu_ids'] = None
 
     # dataset
     for phase, dataset_opt in opt['datasets'].items():
@@ -51,6 +53,7 @@ if __name__ == "__main__":
     logger.info('Initial Dataset Finished')
 
     # model
+
     diffusion = Model.create_model(opt)
     logger.info('Initial Model Finished')
 

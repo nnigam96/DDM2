@@ -153,7 +153,7 @@ class DDM2Stage1(BaseModel):
             #     gen_path), strict=False)
             if self.opt['phase'] == 'train':
                 # optimizer
-                opt = torch.load(opt_path)
+                opt = torch.load(opt_path, map_location=torch.device('cpu'))
                 self.optG.load_state_dict(opt['optimizer'])
                 self.begin_step = opt['iter']
                 self.begin_epoch = opt['epoch']

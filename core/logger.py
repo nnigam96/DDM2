@@ -40,16 +40,16 @@ def parse(args, stage=3):
             print("No noise model found in config file, terminating!")
             exit()
         experiments_root = os.path.join(
-            'experiments', '{}_noisemodel_{}'.format(opt['name'], get_timestamp()))
+            '/staging','nnigam','ddm2_experiments', '{}_noisemodel_{}'.format(opt['name'], get_timestamp()))
     elif stage == 3: # train diffusion model
         experiments_root = os.path.join(
-            'experiments', '{}_{}'.format(opt['name'], get_timestamp()))
+            '/staging','nnigam','ddm2_experiments', '{}_{}'.format(opt['name'], get_timestamp()))
     elif stage == 'denoise':
         experiments_root = os.path.join(
-            'experiments', '{}_denoise_{}'.format(opt['name'], get_timestamp()))
+            '/staging','nnigam','ddm2_experiments', '{}_denoise_{}'.format(opt['name'], get_timestamp()))
     opt['path']['experiments_root'] = experiments_root
     for key, path in opt['path'].items():
-        if 'resume' not in key and 'experiments' not in key and 'N2N' not in key:
+        if 'resume' not in key and 'ddm2_experiments' not in key and 'N2N' not in key:
             opt['path'][key] = os.path.join(experiments_root, path)
             mkdirs(opt['path'][key])
 

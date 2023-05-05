@@ -17,7 +17,7 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--phase', type=str, choices=['val'], help='val(generation)', default='val')
     parser.add_argument('-gpu', '--gpu_ids', type=str, default=None)
     parser.add_argument('-debug', '-d', action='store_true')
-    parser.add_argument('--save', action='store_true')
+    parser.add_argument('--save', action='store_true', default=False)
     parser.add_argument('--align_mean', action='store_true')
     
     # parse configs
@@ -25,7 +25,7 @@ if __name__ == "__main__":
     opt = Logger.parse(args, stage='denoise')
     # Convert to NoneDict, which return None for missing key.
     opt = Logger.dict_to_nonedict(opt)
-
+    #opt['gpu_ids'] = None
     # logging
     torch.backends.cudnn.enabled = True
     torch.backends.cudnn.benchmark = True

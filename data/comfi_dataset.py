@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 from torchvision import transforms, utils
 from data.comfi_data_utils import *
 #from comfi_data_utils import *
-
+import time
 class MRIDataset(Dataset):
     def __init__(self, dataroot, valid_mask, phase='train', image_size=128, in_channel=1, val_volume_idx=60, val_slice_idx=60,
                  padding=1, lr_flip=0.5, stage2_file=None):
@@ -26,6 +26,8 @@ class MRIDataset(Dataset):
         print('Loaded data of size:', raw_data.shape)
         # normalize data
         raw_data = raw_data.astype(np.float32) / np.max(raw_data, axis=(0,1,2), keepdims=True)
+        B_LOW_END = 0.06 # Percent intensity of the darkest part of the B field  0.06
+        self.B = genCompositeField(SIZE, B_LOW_END)
 
         # parse mask
         assert type(valid_mask) is (list or tuple) and len(valid_mask) == 2
@@ -34,7 +36,7 @@ class MRIDataset(Dataset):
         #raw_data = np.expand_dims(raw_data,-1)
         #biased_data = ip_train_transforms(raw_data)
         biased_data = np.copy(raw_data)
-        biased_data = finalTransforms(np.expand_dims(biased_data, 0))
+        #biased_data = finalTransforms(np.expand_dims(biased_data, 0))
         #biased_data = np.expand_dims(biased_data,-1)
         biased_data = biased_data.squeeze()
         raw_data = np.repeat(biased_data[:, :, :, np.newaxis], 160, axis=3)
@@ -60,9 +62,10 @@ class MRIDataset(Dataset):
             self.transforms = transforms.Compose([
                 transforms.ToTensor(),
                 #transforms.Resize(image_size),
-                #transforms.RandomVerticalFlip(lr_flip),
-                #transforms.RandomHorizontalFlip(lr_flip),
+                transforms.RandomVerticalFlip(lr_flip),
+                transforms.RandomHorizontalFlip(lr_flip),
                 #ip_train_transforms,
+                transforms.Lambda(lambda x: finalTransforms(x,B=self.B)),
                 transforms.Lambda(self.lam_transform)
 
             ])
@@ -166,8 +169,9 @@ if __name__ == "__main__":
     #valid_mask = valid_mask.astype(np.bool8)
     dataset = MRIDataset('/staging/nnigam/inphase/anatid_^_0086_UBrain_^_601_^_InPhase__MRAC_1_-_Static_Brain_Emission_ph.nii', valid_mask,
                          phase='train', val_volume_idx=60, padding=3)#, initial_stage_file='/media/administrator/1305D8BDB8D46DEE/stanford/MRI/experiments/v25_noisemodel/stages.txt')
-
+    start_time = time.time()
     data = dataset[9400]
+    print(time.time() - start_time)
     img = data['X']
     condition = data['condition']
     img = img.numpy()
