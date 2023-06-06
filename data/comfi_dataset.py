@@ -10,6 +10,7 @@ from dipy.io.image import save_nifti, load_nifti
 from matplotlib import pyplot as plt
 from torchvision import transforms, utils
 from data.comfi_data_utils import *
+from monai.transforms import ScaleIntensity
 #from comfi_data_utils import *
 import time
 class MRIDataset(Dataset):
@@ -32,6 +33,7 @@ class MRIDataset(Dataset):
         # parse mask
         assert type(valid_mask) is (list or tuple) and len(valid_mask) == 2
         self.raw_data = np.copy(raw_data)
+        self.raw_slice = self.raw_data[:,:,60]
         # mask data
         #raw_data = np.expand_dims(raw_data,-1)
         #biased_data = ip_train_transforms(raw_data)
@@ -39,7 +41,7 @@ class MRIDataset(Dataset):
         #biased_data = finalTransforms(np.expand_dims(biased_data, 0))
         #biased_data = np.expand_dims(biased_data,-1)
         biased_data = biased_data.squeeze()
-        raw_data = np.repeat(biased_data[:, :, :, np.newaxis], 160, axis=3)
+        raw_data = np.repeat(biased_data[:, :, :, np.newaxis], 120, axis=3)
         raw_data = raw_data[:,:,:,valid_mask[0]:valid_mask[1]] 
         
         # Adding rician noise to data
@@ -151,10 +153,12 @@ class MRIDataset(Dataset):
         # raw_input = np.reshape(raw_input, (w, h, -1))
         if len(raw_input.shape) == 4:
             raw_input = raw_input[:,:,0]
+        
+        #un_processed_data = raw_input[:,:,-1]
         raw_input = self.transforms(raw_input) # only support the first channel for now
         # raw_input = raw_input.view(c, d, w, h)
 
-        ret = dict(X=raw_input[[-1], :, :], condition=raw_input[:-1, :, :])
+        ret = dict(X=raw_input[[-1], :, :], condition=raw_input[:-1, :, :], raw=self.raw_slice)
 
         if self.matched_state is not None:
             ret['matched_state'] = torch.zeros(1,) + self.matched_state[volume_idx][slice_idx]
@@ -165,18 +169,31 @@ if __name__ == "__main__":
 
     
     # qiyuan's data
-    valid_mask = [10,160]
+    valid_mask = [15,90]
     #valid_mask = valid_mask.astype(np.bool8)
-    dataset = MRIDataset('/staging/nnigam/inphase/anatid_^_0086_UBrain_^_601_^_InPhase__MRAC_1_-_Static_Brain_Emission_ph.nii', valid_mask,
+    dataset = MRIDataset('/staging/nnigam/inphase/anatid_^_0003_Usab_HeadToe_^_3401_^_InPhase__MRAC_2_-_(2)_Head_to_Toe_Emission_ph.nii', valid_mask,
                          phase='train', val_volume_idx=60, padding=3)#, initial_stage_file='/media/administrator/1305D8BDB8D46DEE/stanford/MRI/experiments/v25_noisemodel/stages.txt')
     start_time = time.time()
-    data = dataset[9400]
+    data = dataset[7500]
     print(time.time() - start_time)
+    raw = data['raw']
+
+    #raw = torch.tensor(raw)
+    raw = ScaleIntensity()(raw)
+    #raw = clip_img(raw)
+    #raw = normalize(raw)
+    mask_np = torch.where(torch.tensor(raw) > 0, 1, 0) #.astype('float32')
+    dataset.B = torch.rot90(torch.rot90(torch.rot90(dataset.B)))
+
+    raw = normalize(raw*dataset.B*mask_np)
+    raw = raw.detach().numpy()
+    raw = 2*raw - 1
+    dataset.B = 2*dataset.B - 1
     img = data['X']
     condition = data['condition']
     img = img.numpy()
     condition = condition.numpy()
-    vis = np.hstack((img[0], condition[0], condition[1]))
+    vis = np.hstack((raw, dataset.B.detach().numpy(), img[0], condition[0]))
     plt.imshow(vis, cmap='gray')
     plt.show()
     plt.savefig("dummy_name.png")

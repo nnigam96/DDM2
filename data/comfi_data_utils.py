@@ -54,6 +54,7 @@ def add_rician_noise(image, intensity=1):
   n1 = n1 / torch.max(n1)
   n2 = torch.normal(0, 1, image.shape)
   n2 = n2 / torch.max(n2)
+  
   return clip_img(torch.abs(image + intensity*n1 + intensity*n2*1j))
 
 def add_gaussian_noise(image, mean=0.0, std=1.0, intensity=1.0):
@@ -147,15 +148,17 @@ def normalize(image):
 
 
 def combinedTransforms(img, B):
-  N_GAIN = 0.1 # Percent intensity of the magnitude of the absolute value of the noise  0.07
+  N_GAIN = 0.35 # Percent intensity of the magnitude of the absolute value of the noise  0.07
   #B_LOW_END = 0.055 # Percent intensity of the darkest part of the B field  0.06
   
+  intensity = ((N_GAIN) * torch.rand(1)).item()
+  #intensity = .item()
   img = torch.tensor(img)
   mask_np = torch.where(torch.tensor(img) > 0, 1, 0) #.astype('float32')
   norm_Img = normalize(img*B*mask_np)
   #norm_Img = normalize(img*mask_np)
   #img = img*B*mask_np
-  img_x = add_rician_noise(norm_Img, intensity=N_GAIN)
+  img_x = add_rician_noise(norm_Img, intensity=intensity)
   img_n4 = img_x
   img_n4 = run_n4(img_x.detach().numpy(), mask_np)
   return torch.tensor(img_n4)
